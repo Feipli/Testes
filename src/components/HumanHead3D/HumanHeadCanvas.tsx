@@ -2,15 +2,19 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { Suspense, useEffect } from 'react'
 import { usePageVisibility } from '../../hooks/usePageVisibility'
 import { HumanHeadModel } from './HumanHeadModel'
+import { ModelErrorBoundary } from './ModelErrorBoundary'
 import type { HumanHead3DProps } from './types'
 
 const TARGET_FPS = 30
 const FRAME_INTERVAL_MS = 1000 / TARGET_FPS
 
-type CanvasContentProps = Pick<
+type HumanHeadCanvasProps = Pick<
   HumanHead3DProps,
   'glbUrl' | 'floatAmplitude' | 'floatSpeed'
->
+> & {
+  onModelReady: () => void
+  onModelError: () => void
+}
 
 function FpsLimiter({ active }: { active: boolean }) {
   const invalidate = useThree((state) => state.invalidate)
@@ -18,6 +22,7 @@ function FpsLimiter({ active }: { active: boolean }) {
   useEffect(() => {
     if (!active) return
 
+    invalidate()
     const id = window.setInterval(() => invalidate(), FRAME_INTERVAL_MS)
     return () => window.clearInterval(id)
   }, [active, invalidate])
@@ -29,8 +34,15 @@ function CanvasContent({
   glbUrl,
   floatAmplitude = 0.08,
   floatSpeed = 1.2,
-}: CanvasContentProps) {
+  onModelReady,
+  onModelError,
+}: HumanHeadCanvasProps) {
   const isVisible = usePageVisibility()
+  const invalidate = useThree((state) => state.invalidate)
+
+  useEffect(() => {
+    if (isVisible) invalidate()
+  }, [isVisible, invalidate])
 
   return (
     <>
@@ -38,18 +50,21 @@ function CanvasContent({
       <ambientLight intensity={0.35} />
       <directionalLight position={[4, 6, 4]} intensity={1.4} />
       <directionalLight position={[-3, 2, -2]} intensity={0.5} color="#ff4466" />
-      <Suspense fallback={null}>
-        <HumanHeadModel
-          url={glbUrl}
-          floatAmplitude={floatAmplitude}
-          floatSpeed={floatSpeed}
-        />
-      </Suspense>
+      <ModelErrorBoundary onError={onModelError}>
+        <Suspense fallback={null}>
+          <HumanHeadModel
+            url={glbUrl}
+            floatAmplitude={floatAmplitude}
+            floatSpeed={floatSpeed}
+            onReady={onModelReady}
+          />
+        </Suspense>
+      </ModelErrorBoundary>
     </>
   )
 }
 
-export function HumanHeadCanvas(props: CanvasContentProps) {
+export function HumanHeadCanvas(props: HumanHeadCanvasProps) {
   const isVisible = usePageVisibility()
   const frameloop = isVisible ? 'demand' : 'never'
 
@@ -59,6 +74,10 @@ export function HumanHeadCanvas(props: CanvasContentProps) {
       camera={{ position: [0, 0, 2.8], fov: 42 }}
       gl={{ antialias: true, alpha: true }}
       dpr={[1, 2]}
+      onCreated={({ gl }) => {
+        gl.setClearColor(0x000000, 0)
+      }}
+      style={{ width: '100%', height: '100%' }}
     >
       <CanvasContent {...props} />
     </Canvas>

@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useCallback, useState } from 'react'
+import { useAssetExists } from '../../hooks/useAssetExists'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import type { HumanHead3DProps } from './types'
 
@@ -7,6 +8,13 @@ const HumanHeadCanvas = lazy(() =>
     default: module.HumanHeadCanvas,
   })),
 )
+
+const fallbackImageStyle = {
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover' as const,
+  display: 'block',
+}
 
 export function HumanHead3D({
   glbUrl,
@@ -18,53 +26,54 @@ export function HumanHead3D({
   floatSpeed,
 }: HumanHead3DProps) {
   const isMobile = useIsMobile()
+  const glbStatus = useAssetExists(glbUrl)
+  const [modelReady, setModelReady] = useState(false)
+  const [modelFailed, setModelFailed] = useState(false)
 
-  if (isMobile) {
-    return (
-      <img
-        src={fallbackImageUrl}
-        alt={fallbackAlt}
-        className={className}
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: 'block',
-          ...style,
-        }}
-        loading="lazy"
-        decoding="async"
-      />
-    )
-  }
+  const handleModelReady = useCallback(() => setModelReady(true), [])
+  const handleModelError = useCallback(() => setModelFailed(true), [])
+
+  const canRender3D =
+    !isMobile && glbStatus === 'available' && !modelFailed
 
   return (
     <div
       className={className}
-      style={{ width: '100%', height: '100%', ...style }}
+      style={{ position: 'relative', width: '100%', height: '100%', ...style }}
     >
-      <Suspense
-        fallback={
-          <img
-            src={fallbackImageUrl}
-            alt={fallbackAlt}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              display: 'block',
-            }}
-            loading="lazy"
-            decoding="async"
-          />
-        }
-      >
-        <HumanHeadCanvas
-          glbUrl={glbUrl}
-          floatAmplitude={floatAmplitude}
-          floatSpeed={floatSpeed}
-        />
-      </Suspense>
+      <img
+        src={fallbackImageUrl}
+        alt={fallbackAlt}
+        style={{
+          ...fallbackImageStyle,
+          opacity: canRender3D && modelReady ? 0 : 1,
+          transition: 'opacity 0.4s ease',
+        }}
+        loading="lazy"
+        decoding="async"
+      />
+
+      {canRender3D && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            opacity: modelReady ? 1 : 0,
+            transition: 'opacity 0.4s ease',
+            pointerEvents: modelReady ? 'auto' : 'none',
+          }}
+        >
+          <Suspense fallback={null}>
+            <HumanHeadCanvas
+              glbUrl={glbUrl}
+              floatAmplitude={floatAmplitude}
+              floatSpeed={floatSpeed}
+              onModelReady={handleModelReady}
+              onModelError={handleModelError}
+            />
+          </Suspense>
+        </div>
+      )}
     </div>
   )
 }

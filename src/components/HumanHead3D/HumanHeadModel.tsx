@@ -1,6 +1,6 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { Group } from 'three'
 
 const DRACO_DECODER_PATH =
@@ -12,6 +12,7 @@ interface HumanHeadModelProps {
   url: string
   floatAmplitude: number
   floatSpeed: number
+  onReady: () => void
 }
 
 function randomRotationSpeed(): number {
@@ -22,8 +23,10 @@ export function HumanHeadModel({
   url,
   floatAmplitude,
   floatSpeed,
+  onReady,
 }: HumanHeadModelProps) {
   const groupRef = useRef<Group>(null)
+  const readyCalled = useRef(false)
   const { scene } = useGLTF(url, true)
 
   const clonedScene = useMemo(() => scene.clone(), [scene])
@@ -36,6 +39,12 @@ export function HumanHeadModel({
     }),
     [],
   )
+
+  useEffect(() => {
+    if (readyCalled.current) return
+    readyCalled.current = true
+    onReady()
+  }, [onReady])
 
   useFrame((state, delta) => {
     const group = groupRef.current

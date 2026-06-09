@@ -39,7 +39,10 @@ Coloque os arquivos em `public/`:
 | Arquivo | Descrição |
 |---------|-----------|
 | `public/models/head.glb` | Modelo 3D comprimido com [Draco](https://google.github.io/draco/) |
-| `public/images/head-fallback.png` | Imagem estática para mobile e loading |
+| `public/images/head-fallback.png` | **Sua foto/retrato** — usada em mobile e como fallback no desktop |
+
+Sem o GLB, o componente exibe apenas a imagem PNG (não fica tela preta).
+Sem a PNG, adicione o seu retrato em `public/images/head-fallback.png`.
 
 ## Desenvolvimento
 

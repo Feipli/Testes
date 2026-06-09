@@ -6,7 +6,11 @@ const FALLBACK_URL = '/images/head-fallback.png'
 
 export function App() {
   useEffect(() => {
-    preloadHumanHeadModel(GLB_URL)
+    fetch(GLB_URL, { method: 'HEAD' })
+      .then((response) => {
+        if (response.ok) preloadHumanHeadModel(GLB_URL)
+      })
+      .catch(() => {})
   }, [])
 
   return (
@@ -14,7 +18,7 @@ export function App() {
       <HumanHead3D
         glbUrl={GLB_URL}
         fallbackImageUrl={FALLBACK_URL}
-        fallbackAlt="Retrato ilustrado em tons de vermelho"
+        fallbackAlt="Retrato"
         className="head-viewer"
       />
     </main>
