@@ -1,63 +1,24 @@
-# Human Head 3D (React Three Fiber)
+# Cabeça girando em 3D
 
-Componente React que exibe um modelo GLB de cabeça humana com animações leves, otimizações de performance e fallback para dispositivos móveis.
+A forma mais fácil: **escolha sua foto na página** e ela gira automaticamente.
 
-## Requisitos atendidos
-
-- Rotação aleatória contínua nos três eixos
-- Movimento suave de flutuação (senoidal no eixo Y)
-- Limite de FPS em 30 (`frameloop="demand"` + `invalidate` periódico)
-- Pausa automática quando a aba está em segundo plano (`visibilitychange` + `frameloop="never"`)
-- Carregamento lazy do canvas 3D (`React.lazy`)
-- Descompressão Draco via `@react-three/drei` (`useGLTF(url, true)`)
-- Fallback PNG em dispositivos móveis
-
-## Uso
-
-```tsx
-import { HumanHead3D, preloadHumanHeadModel } from './components/HumanHead3D'
-
-const GLB_URL = '/models/head.glb'
-const FALLBACK_URL = '/images/head-fallback.png'
-
-// Opcional: pré-carregar o modelo em desktop
-preloadHumanHeadModel(GLB_URL)
-
-<HumanHead3D
-  glbUrl={GLB_URL}
-  fallbackImageUrl={FALLBACK_URL}
-  fallbackAlt="Retrato ilustrado"
-  floatAmplitude={0.08}
-  floatSpeed={1.2}
-/>
-```
-
-## Assets
-
-Coloque os arquivos em `public/`:
-
-| Arquivo | Descrição |
-|---------|-----------|
-| `public/models/head.glb` | Modelo 3D comprimido com [Draco](https://google.github.io/draco/) |
-| `public/images/head-fallback.png` | **Sua foto/retrato** — usada em mobile e como fallback no desktop |
-
-Sem o GLB, o componente exibe apenas a imagem PNG (não fica tela preta).
-Sem a PNG, adicione o seu retrato em `public/images/head-fallback.png`.
-
-## Desenvolvimento
+## Rodar
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Estrutura
+Abra o navegador → clique em **"Escolher minha foto"** → pronto.
 
-```
-src/components/HumanHead3D/
-├── HumanHead3D.tsx      # Wrapper com detecção mobile + lazy load
-├── HumanHeadCanvas.tsx  # Canvas R3F, FPS 30, pausa em background
-├── HumanHeadModel.tsx   # GLB + Draco, rotação e flutuação
-├── types.ts
-└── index.ts
-```
+## Alternativa sem upload
+
+Coloque sua foto em `public/head.png` — ela carrega automaticamente.
+
+## Modelo 3D real (opcional, mais trabalhoso)
+
+1. Vá em [Meshy.ai](https://www.meshy.ai) ou [Luma AI](https://lumalabs.ai)
+2. Envie sua foto e gere um modelo 3D
+3. Baixe o `.glb` e coloque em `public/models/head.glb`
+
+Para a maioria dos casos, a foto girando em 3D já é suficiente e funciona na hora.
